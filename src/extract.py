@@ -1,37 +1,35 @@
 import yfinance as yf
 import polars as pl
 from datetime import datetime, timedelta
-import os
+import pandas as pd
 
-def extract_financial_data(ticker: str, days: int = 30):
+def extract_financial_data(ticker: str, days: int = 30, retries: int = 3):
     """
-    Extracts historical price data using yfinance.
+    Extracts data with retry logic and returns a Polars DataFrame.
     """
-    print('='*50)
-    print(f"Extracting data for {ticker}")
-    print('='*50)
-    
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=days)
-    
-    # Fetch data
-    data = yf.download(ticker, start=start_date, end=end_date, interval="1d")
-    
-    # Flatten MultiIndex columns if present
-    if hasattr(data.columns, 'nlevels') and data.columns.nlevels > 1:
-        data.columns = data.columns.get_level_values(0)
+    for attempt in range(retries):
+        try:
+            print(f"--- Attempt {attempt + 1}: Extracting {ticker} ---")
+            data = yf.download(ticker, period=f"{days}d", interval="1d")
+            
+            if data.empty:
+                raise ValueError("No data returned")
+            
+            # flatten the MultiIndex columns if they exist
+            if isinstance(data.columns, pd.MultiIndex):
+                data.columns = data.columns.get_level_values(0)
+            
+            # reset the index so 'Date' becomes a normal column
+            data = data.reset_index()
+            
+            # rename columns to be simple strings
+            data.columns = [str(col) for col in data.columns]
 
-    # Convert to Polars DataFrame
-    df = pl.from_pandas(data.reset_index())
-    
-    return df
-
-if __name__ == "__main__":
-    # Test with Bitcoin
-    btc_data = extract_financial_data("BTC-USD")
-    print(btc_data.head())
-    
-    # Save a raw sample to data
-    os.makedirs("data", exist_ok=True)  # Create data directory if it doesn't exist
-    btc_data.write_csv("data/raw_btc_data.csv")  # Save raw data to CSV
-    print("Successfully saved raw data to data/raw_btc_data.csv")
+            df = pl.from_pandas(data)
+            return df
+            
+        except Exception as e:
+            print(f"Error: {e}. Waiting to retry...")
+            time.sleep(2 ** attempt) 
+            
+    raise Exception(f"Failed to extract {ticker} after {retries} attempts.")
