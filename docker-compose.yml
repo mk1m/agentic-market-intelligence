@@ -1,0 +1,10 @@
+services:
+  agent:
+    build: .
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+    stdin_open: true
+    tty: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

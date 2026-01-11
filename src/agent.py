@@ -1,6 +1,7 @@
 import sqlite3
 import joblib
 import ollama
+from ollama import Client
 import pandas as pd
 
 def get_latest_context(ticker):
@@ -36,6 +37,8 @@ def run_agentic_analysis(ctx):
     '''
     Feeds the statistical prediction + real data into the LLM.
     '''
+    client = Client(host='http://host.docker.internal:11434')
+
     # if these columns are missing, set to N/A
     ma7 = ctx.get('MA7', 'N/A')
     ma21 = ctx.get('MA21', 'N/A')
@@ -64,7 +67,7 @@ def run_agentic_analysis(ctx):
     4. Provide a clear 'Action' with a 'Why' sentence that references the data.
     """
     
-    response = ollama.chat(model='llama3', messages=[
+    response = client.chat(model='llama3', messages=[
         {'role': 'system', 'content': 'You are a helpful mentor for everyday investors. Use simple English and be concise.'},
         {'role': 'user', 'content': prompt},
     ])
