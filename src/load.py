@@ -2,9 +2,9 @@ import sqlite3
 import polars as pl
 
 def load_to_sqlite(df: pl.DataFrame, db_name: str = "data/market_data.db", table_name: str = "btc_metrics"):
-    """
+    '''
     Loads a Polars DataFrame into a SQLite database.
-    """
+    '''
     print('='*50)
     print(f"Loading data into SQL table: {table_name}")
     print('='*50)
