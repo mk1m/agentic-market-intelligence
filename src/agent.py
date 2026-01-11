@@ -3,13 +3,14 @@ import joblib
 import ollama
 import pandas as pd
 
-def get_latest_context():
+def get_latest_context(ticker):
     '''
     Fetches the latest data row and generates an XGBoost prediction.
     '''
     # connect to DB
+    
     conn = sqlite3.connect("data/market_data.db")
-    query = "SELECT * FROM btc_metrics ORDER BY Date DESC LIMIT 1"
+    query = f"SELECT * FROM stock_metrics WHERE Ticker = '{ticker}' ORDER BY Date DESC LIMIT 1"
     df = pd.read_sql_query(query, conn)
     conn.close()
     
@@ -17,7 +18,8 @@ def get_latest_context():
         return None
 
     # load trained XGBoost model
-    model = joblib.load("models/xgboost_forecaster.pkl")
+    model_path = f"models/{ticker}_xgboost_forecaster.pkl"
+    model = joblib.load(model_path)
     
     # features for prediction
     features = ["Lag_1", "Lag_2", "Lag_3", "Volatility"]
@@ -44,8 +46,8 @@ def run_agentic_analysis(ctx):
     
     prompt = f"""
     [PERSONA]
-    You are a friendly, patient Financial Mentor. Your goal is to explain Bitcoin 
-    trends to someone who has never invested before. Avoid jargon. If you use a 
+    You are a friendly, patient Financial Mentor. Analyze this data for the stock symbol: {ctx['Ticker']}.
+    Your goal is to explain the stock trends to someone who has never invested before. Avoid jargon. If you use a 
     technical term, explain it with an everyday analogy.
 
     [DATA INPUTS]
@@ -63,7 +65,7 @@ def run_agentic_analysis(ctx):
     """
     
     response = ollama.chat(model='llama3', messages=[
-        {'role': 'system', 'content': 'You are a helpful mentor for beginner investors. Use simple English and relatable analogies.'},
+        {'role': 'system', 'content': 'You are a helpful mentor for everyday investors. Use simple English and be concise.'},
         {'role': 'user', 'content': prompt},
     ])
     

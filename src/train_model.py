@@ -4,9 +4,9 @@ from sklearn.model_selection import train_test_split
 import joblib
 import matplotlib.pyplot as plt
 
-def train_forecaster():
+def train_forecaster(ticker: str):
     # load processed data
-    df = pl.read_csv("data/processed_btc_data.csv")
+    df = pl.read_csv(f"data/processed_{ticker}_data.csv")
     
     # define features and target
     # use lags and volatility to predict the next return
@@ -45,8 +45,9 @@ def train_forecaster():
     print(f"Final Test RMSE: {test_rmse[-1]:.5f}")
 
     # save the model for the agent to use
-    joblib.dump(model, "models/xgboost_forecaster.pkl")
-    print("Model saved to models/xgboost_forecaster.pkl")
+    model_path = f"models/{ticker}_xgboost_forecaster.pkl"
+    joblib.dump(model, model_path)
+    print(f"Model saved to {model_path}")
 
     return results
 
@@ -61,5 +62,6 @@ def plot_learning_curve(results):
     plt.show()
 
 if __name__ == "__main__":
-    results = train_forecaster()
+    user_ticker = input("Enter ticker to train (e.g., AAPL): ").upper()
+    results = train_forecaster(user_ticker)
     plot_learning_curve(results)
