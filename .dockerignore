@@ -1,0 +1,26 @@
+# Python caches
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# local environments
+.venv/
+env/
+venv/
+.env
+
+# data and models
+data/*.db
+data/*.csv
+models/*.pkl
+
+# git
+.git
+.gitignore
+
+# Docker logs
+*.log
+
+# Mac-specific files
+.DS_Store
