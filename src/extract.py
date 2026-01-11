@@ -2,11 +2,12 @@ import yfinance as yf
 import polars as pl
 from datetime import datetime, timedelta
 import pandas as pd
+import time
 
 def extract_financial_data(ticker: str, days: int = 30, retries: int = 3):
-    """
+    '''
     Extracts data with retry logic and returns a Polars DataFrame.
-    """
+    '''
     for attempt in range(retries):
         try:
             print(f"--- Attempt {attempt + 1}: Extracting {ticker} ---")
